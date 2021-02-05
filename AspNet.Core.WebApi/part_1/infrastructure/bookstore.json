@@ -1,0 +1,71 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment": {
+      "type": "string",
+      "metadata": {
+        "description": "Environment name"
+      }
+    },
+    "servicePlanName": {
+      "type": "string",
+      "defaultValue": "[concat('plan-lab-', parameters('environment'))]",
+      "metadata": {
+        "description": "Service Plan name"
+      }
+    },
+    "servicePlanSku": {
+      "type": "string",
+      "defaultValue": "F1",
+      "metadata": {
+        "description": "SKU name to specify the server farm scaling."
+      }
+    },
+    "appServiceName": {
+      "type": "string",
+      "defaultValue": "[concat('app-bookstore-', parameters('environment'))]",
+      "metadata": {
+        "description": "App service plan name"
+      }
+    }
+  },
+  "functions": [],
+  "variables": {},
+  "resources": [
+    {
+      "name": "[parameters('servicePlanName')]",
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2018-02-01",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "[parameters('servicePlanSku')]",
+        "capacity": 1
+      },
+      "tags": {
+        "displayName": "[parameters('servicePlanName')]"
+      },
+      "properties": {
+        "name": "[parameters('servicePlanName')]"
+      }
+    },
+    {
+      "name": "[parameters('appServiceName')]",
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2018-11-01",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('servicePlanName'))]": "Resource",
+        "displayName": "[parameters('appServiceName')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', parameters('servicePlanName'))]"
+      ],
+      "properties": {
+        "name": "[parameters('appServiceName')]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('servicePlanName'))]"
+      }
+    }
+  ],
+  "outputs": {}
+}
